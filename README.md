@@ -102,3 +102,7 @@ pandoc -f typst -t latex --lua-filter=typst2latex.lua main.typ.txt -o main.tex
   the template file, not your sources — filtered out of the synctex.
 - Overleaf could change the sandbox profile, container image, or viewer
   at any time. Pin everything and re-test after Overleaf updates.
+
+---
+
+*AI-generated with pi / deepseek-v4-flash. Content may be wrong; verify before relying on it.*
