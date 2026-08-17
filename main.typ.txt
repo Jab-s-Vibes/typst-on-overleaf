@@ -285,3 +285,5 @@ line in `main.typ.txt`. Both directions work.
 *This is an unsupported hack. Overleaf can change the sandbox at any time —
 the seccomp profile, the container image, the viewer. If you ship this, pin
 everything and expect to re-test on every Overleaf update.*
+
+*AI-generated with pi / deepseek-v4-flash. Content may be wrong; verify before relying on it.*
