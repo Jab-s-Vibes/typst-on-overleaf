@@ -3,19 +3,6 @@
 // The blog post, self-contained (wrapper + body).
 // Compile: typst compile --package-path ./typst-packages main.typ.txt
 // ============================================================
-#import "@preview/stellar-springer-nature:0.1.0": article
-
-#show: article.with(
-  title: [Typst on Overleaf: a compiler in a sandbox that didn't want one],
-  authors: (),
-  abstract: [
-    How we got Typst compiling inside Overleaf's compile sandbox — and gave
-    it click-to-source navigation — by reverse-engineering the sandbox's
-    seccomp profile, patching Rust's stdlib behavior from outside, and
-    teaching the SyncTeX parser a new dialect.
-  ],
-  keywords: ("typst", "overleaf", "seccomp", "synctex", "rust"),
-)
 
 // Blog-style headings: the "Part N" labels already carry the numbers.
 #set heading(numbering: none)

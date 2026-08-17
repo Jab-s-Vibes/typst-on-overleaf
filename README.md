@@ -27,7 +27,7 @@ time. Tested on overleaf.com, 2026-08.
 | `pollshim.so` | LD_PRELOAD shim — see "Why the shim" below |
 | `synctex-gen.txt` | perl script: `typst query --map` → `output.synctex.gz` |
 | `typst-query-map.patch` | the `--map` patch, applies to typst v0.15.1 (`git apply` from the typst tree root) |
-| `typst-packages/` | vendored `@preview` packages (the sandbox has no network) |
+| `typst-packages/` | vendored `@preview` packages (currently none; see "Vendoring a new package") |
 
 ## Use
 
