@@ -12,8 +12,8 @@
 use strict;
 use warnings;
 
-my $jsps    = "main.typ.txt";
-my $content = "content.typ.txt";
+my $jsps    = "main.typ.tex";
+my $content = "content.typ.tex";
 my $typst   = $ENV{TYPST_BIN} || "/tmp/typst";
 my $pkgpath = "./typst-packages";
 my $U       = 65536;    # pt -> synctex units

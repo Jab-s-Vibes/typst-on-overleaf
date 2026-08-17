@@ -1,7 +1,7 @@
 // ============================================================
 // Typst on Overleaf: a compiler in a sandbox that didn't want one
 // The blog post, self-contained (wrapper + body).
-// Compile: typst compile --package-path ./typst-packages main.typ.txt
+// Compile: typst compile --package-path ./typst-packages main.typ.tex
 // ============================================================
 
 // Blog-style headings: the "Part N" labels already carry the numbers.
@@ -36,7 +36,7 @@ latexmk -cd -f -jobname=output -synctex=1 -interaction=batchmode -pdf main.tex
 produced it. The `$pdflatex` override wins over the `-pdf` flag:
 
 ```perl
-$pdflatex = './typst compile main.typ.txt output.pdf 2>output.log #';
+$pdflatex = './typst compile main.typ.tex output.pdf 2>output.log #';
 ```
 
 The trailing `#` turns latexmk's appended arguments into a shell comment.
@@ -180,7 +180,7 @@ The minimal structure that parses and works:
 
 ```
 SyncTeX Version:1
-Input:1:main.typ.txt
+Input:1:main.typ.tex
 Output:pdf
 Magnification:1000
 Unit:1
@@ -238,8 +238,8 @@ granularity, mapped to the exact source line. No label matching at all.
 
 ```
 $ typst query --map doc.typ | head
-/content.typ.txt|20|10|1|70.9|82.5|457.1|17.0
-/content.typ.txt|27|12|1|177.9|105.2|239.4|17.0
+/content.typ.tex|20|10|1|70.9|82.5|457.1|17.0
+/content.typ.tex|27|12|1|177.9|105.2|239.4|17.0
 ...
 ```
 
@@ -253,11 +253,11 @@ typst-on-overleaf/
 ├── pollshim.so          # makes poll(2) return EINVAL
 ├── synctex-gen.txt      # perl: typst query --map → output.synctex.gz
 ├── typst-packages/      # vendored @preview packages (no network in sandbox)
-└── main.typ.txt         # this document: the blog post, self-contained
+└── main.typ.tex         # this document: the blog post, self-contained
 ```
 
 In Overleaf: PDF renders from Typst, click any word → jumps to its source
-line in `main.typ.txt`. Both directions work.
+line in `main.typ.tex`. Both directions work.
 
 = Lessons
 

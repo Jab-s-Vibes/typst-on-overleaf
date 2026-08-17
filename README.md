@@ -11,7 +11,7 @@ time. Tested on overleaf.com, 2026-08.
 
 ## What you get
 
-- `main.typ.txt` (the whole document: wrapper + body, Springer Nature
+- `main.typ.tex` (the whole document: wrapper + body, Springer Nature
   style) compiles to `output.pdf` via a vendored Typst binary.
 - Every text run maps to its exact source line: double-click any word in
   the PDF → jumps to it in the editor (forward and reverse search work).
@@ -22,7 +22,7 @@ time. Tested on overleaf.com, 2026-08.
 
 | file | purpose |
 |---|---|
-| `main.typ.txt` (named `.txt` so Overleaf's editor opens it) | the whole document: title block + body |
+| `main.typ.tex` (named `.txt` so Overleaf's editor opens it) | the whole document: title block + body |
 | `latexmkrc` | overrides the pdflatex step; runs typst + synctex generator |
 | `main.tex` | stub main document (Overleaf needs one; never compiled) |
 | `typst-query-map.patch` | the `--map` patch, applies to typst v0.15.1 (`git apply` from the typst tree root) |
@@ -38,7 +38,7 @@ time. Tested on overleaf.com, 2026-08.
    (`make blobs`), or build them yourself (`make build-blobs`).
 2. Import this directory as an Overleaf project (zip it, or push it as a
    git repo to your Overleaf project).
-3. Edit `main.typ.txt`.
+3. Edit `main.typ.tex`.
 4. Compile. The PDF appears; click-to-source works.
 5. If you add `@preview` packages, vendor them under `typst-packages/`
    (see below) — the sandbox cannot download them.
@@ -89,7 +89,7 @@ tar -czf typst-x86_64-unknown-linux-gnu.tar.gz typst-x86_64-unknown-linux-gnu
 
 ```sh
 # locally:
-typst compile --package-path ./typst-packages main.typ.txt
+typst compile --package-path ./typst-packages main.typ.tex
 # then copy the resolved package dir from ~/.cache/typst/packages/preview/<name>/<version>
 # into typst-packages/preview/<name>/<version>/ and commit it
 ```
@@ -100,7 +100,7 @@ Raw-LaTeX fragments (like the wrapper's `\begin{abstract}` block) are
 passed through by pandoc's typst reader:
 
 ```sh
-pandoc -f typst -t latex --lua-filter=typst2latex.lua main.typ.txt -o main.tex
+pandoc -f typst -t latex --lua-filter=typst2latex.lua main.typ.tex -o main.tex
 ```
 
 ## Limitations
