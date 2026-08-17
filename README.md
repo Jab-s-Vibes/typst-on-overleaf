@@ -25,19 +25,22 @@ time. Tested on overleaf.com, 2026-08.
 | `main.typ.txt` (named `.txt` so Overleaf's editor opens it) | the whole document: title block + body |
 | `latexmkrc` | overrides the pdflatex step; runs typst + synctex generator |
 | `main.tex` | stub main document (Overleaf needs one; never compiled) |
-| `typst-x86_64-unknown-linux-gnu.tar.gz` | typst 0.15.1 built for glibc 2.39, patched with `query --map` |
-| `pollshim.so` | LD_PRELOAD shim — see "Why the shim" below |
-| `synctex-gen.txt` | perl script: `typst query --map` → `output.synctex.gz` |
 | `typst-query-map.patch` | the `--map` patch, applies to typst v0.15.1 (`git apply` from the typst tree root) |
+| `pollshim.c` | source of `pollshim.so` — see "Why the shim" below |
+| `synctex-gen.txt` | perl script: `typst query --map` → `output.synctex.gz` |
+| `Makefile` | `make blobs` (download) or `make build-blobs` (build) the two binary blobs |
 | `typst-packages/` | vendored `@preview` packages (currently none; see "Vendoring a new package") |
 
 ## Use
 
-1. Import this directory as an Overleaf project (zip it, or push it as a
+1. Get the two blobs — `typst-x86_64-unknown-linux-gnu.tar.gz` and
+   `pollshim.so` — from the [GitHub Release](https://github.com/Jab-s-Vibes/typst-on-overleaf/releases/latest)
+   (`make blobs`), or build them yourself (`make build-blobs`).
+2. Import this directory as an Overleaf project (zip it, or push it as a
    git repo to your Overleaf project).
-2. Edit `main.typ.txt`.
-3. Compile. The PDF appears; click-to-source works.
-4. If you add `@preview` packages, vendor them under `typst-packages/`
+3. Edit `main.typ.txt`.
+4. Compile. The PDF appears; click-to-source works.
+5. If you add `@preview` packages, vendor them under `typst-packages/`
    (see below) — the sandbox cannot download them.
 
 ### Settings
