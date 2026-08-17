@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+# Generate output.synctex.gz for Overleaf from typst layout data.
+#
+# `typst query --map` (patched typst) walks the document layout and emits
+# one record per text run: /path|line|col|page|x|y|w|h (pt, top-left).
+# Every paragraph/heading/word gets a clickable box mapped to its exact
+# source line — no label matching needed. Anchors in the vendored
+# template (lib.typ) are dropped.
+#
+# Usage: perl synctex-gen.txt  (cwd = compile dir; writes to stdout)
+#   env TYPST_BIN overrides the typst binary (default /tmp/typst).
+use strict;
+use warnings;
+
+my $jsps    = "main.typ.txt";
+my $content = "content.typ.txt";
+my $typst   = $ENV{TYPST_BIN} || "/tmp/typst";
+my $pkgpath = "./typst-packages";
+my $U       = 65536;    # pt -> synctex units
+my $warn    = sub { print STDERR "synctex-gen: $_[0]\n" };
+
+my $out = `$typst query --map --package-path $pkgpath $jsps dummy 2>/dev/null`;
+if ($? != 0) {
+    $warn->("map failed (rc=" . ($? >> 8) . "): " . substr($out, 0, 160));
+    exit 1;
+}
+
+my @anchors;
+for my $line (split /\n/, $out) {
+    my ($path, $ln, $col, $pg, $x, $y, $w, $h) = split /\|/, $line;
+    next unless defined $h;
+    $path =~ s{^/+}{};
+    next unless $path eq $jsps || $path eq $content;
+    next unless $w > 0 && $h > 0 && $ln > 0 && $pg > 0;
+    push @anchors, {
+        path => $path, line => $ln + 0, page => $pg + 0,
+        x => $x + 0, y => $y + 0, w => $w + 0, h => $h + 0,
+    };
+}
+$warn->("anchors: " . scalar(@anchors));
+exit 1 unless @anchors;
+
+# input index per path
+my %tag;
+for my $a (@anchors) {
+    $tag{$a->{path}} = scalar(keys %tag) + 1 unless exists $tag{$a->{path}};
+}
+
+my %bypage;
+for my $a (@anchors) { push @{$bypage{$a->{page}}}, $a }
+
+print "SyncTeX Version:1\n";
+for my $p (sort { $tag{$a} <=> $tag{$b} } keys %tag) {
+    print "Input:", $tag{$p}, ":$p\n";
+}
+print "Output:pdf\nMagnification:1000\nUnit:1\nX Offset:0\nY Offset:0\nContent:\n";
+my $count = 2;
+for my $pg (sort { $a <=> $b } keys %bypage) {
+    my @as = @{$bypage{$pg}};
+    my $first = $as[0];
+    print "!0\n{$pg\n";
+    my $t0 = $tag{$first->{path}};
+    print "[$t0,$first->{line}:", int($first->{x} * $U), ",", int($first->{y} * $U), ":", int($first->{w} * $U), ",", int($first->{h} * $U), ":0,0,0\n";
+    for my $a (@as) {
+        my $t = $tag{$a->{path}};
+        my $x = int($a->{x} * $U); my $y = int($a->{y} * $U);
+        my $w = int($a->{w} * $U); my $h = int($a->{h} * $U);
+        print "($t,$a->{line}:$x,$y:$w,$h:0,0,0\n";
+        print "h$t,$a->{line}:$x,$y:$w,0:0,0,0\n";
+        print "x$t,$a->{line}:$x,$y\n";
+        print ")\n";
+        $count += 3;
+    }
+    print "]\n}\n";
+}
+print "Postamble:\nCount:$count\n!24\nPost scriptum:\n";

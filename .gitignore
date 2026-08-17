@@ -1,0 +1,5 @@
+typst-bin/
+output.*
+*.pdf
+*.synctex.gz
+preview.*
