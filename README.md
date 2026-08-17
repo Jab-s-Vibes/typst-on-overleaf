@@ -26,6 +26,7 @@ time. Tested on overleaf.com, 2026-08.
 | `typst-x86_64-unknown-linux-gnu.tar.gz` | typst 0.15.1 built for glibc 2.39, patched with `query --map` |
 | `pollshim.so` | LD_PRELOAD shim — see "Why the shim" below |
 | `synctex-gen.txt` | perl script: `typst query --map` → `output.synctex.gz` |
+| `typst-query-map.patch` | the `--map` patch, applies to typst v0.15.1 (`git apply` from the typst tree root) |
 | `typst-packages/` | vendored `@preview` packages (the sandbox has no network) |
 
 ## Use
@@ -65,14 +66,17 @@ built on Ubuntu 24.04 to match the sandbox's glibc 2.39.
 ## Updating the typst binary
 
 The binary is patched (added `typst query --map`, which walks the layout
-and emits one record per text run: `path|line|col|page|x|y|w|h`). To
+and emits one record per text run: `path|line|col|page|x|y|w|h`). The
+patch ships as `typst-query-map.patch` (applies to typst v0.15.1). To
 rebuild:
 
 ```sh
 git clone --branch v0.15.1 https://github.com/typst/typst
 cd typst
-# apply the --map patch (see the blog post / synctex-gen.txt for the output format)
+git apply /path/to/typst-query-map.patch
 cargo build --release --bin typst
+# build must be glibc-linked, matching the sandbox glibc (2.39);
+# keep symbols (`strip=false`) or the LD_PRELOAD shim won't interpose.
 tar -czf typst-x86_64-unknown-linux-gnu.tar.gz typst-x86_64-unknown-linux-gnu
 ```
 

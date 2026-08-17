@@ -1,0 +1,127 @@
+diff --git a/crates/typst-cli/src/args.rs b/crates/typst-cli/src/args.rs
+index ee3ae7e..1f2afb6 100644
+--- a/crates/typst-cli/src/args.rs
++++ b/crates/typst-cli/src/args.rs
+@@ -165,6 +165,11 @@ pub struct QueryCommand {
+     #[clap(long = "field")]
+     pub field: Option<String>,
+ 
++    /// Emits a source map (file|line|col|page|x|y|w|h per text run)
++    /// instead of query results.
++    #[clap(long = "map")]
++    pub map: bool,
++
+     /// Expects and retrieves exactly one element.
+     #[clap(long = "one", default_value = "false")]
+     pub one: bool,
+diff --git a/crates/typst-cli/src/query.rs b/crates/typst-cli/src/query.rs
+index 9ab0af3..8f157c0 100644
+--- a/crates/typst-cli/src/query.rs
++++ b/crates/typst-cli/src/query.rs
+@@ -3,6 +3,8 @@ use std::fmt::Write;
+ use comemo::Track;
+ use ecow::{EcoString, eco_format};
+ use typst::World;
++use typst::WorldExt;
++use typst::layout::{Frame, FrameItem};
+ use typst::diag::{HintedStrResult, SourceDiagnostic, StrResult, Warned, bail, warning};
+ use typst::engine::Sink;
+ use typst::foundations::{
+@@ -30,6 +32,31 @@ pub fn query(command: &'static QueryCommand) -> HintedStrResult<()> {
+     world.reset();
+     world.source(world.main()).map_err(|err| err.to_string())?;
+ 
++
++    if command.map {
++        let Warned { output, mut warnings } = typst::compile::<PagedDocument>(&world);
++        warnings.push(deprecation_warning(command));
++        return match output {
++            Ok(doc) => {
++                println!("{}", source_map(&world, &doc)?);
++                print_diagnostics(&world, &[], &warnings, command.process.diagnostic_format)
++                    .map_err(|err| eco_format!("failed to print diagnostics ({err})"))?;
++                Ok(())
++            }
++            Err(errors) => {
++                set_failed();
++                print_diagnostics(
++                    &world,
++                    &errors,
++                    &warnings,
++                    command.process.diagnostic_format,
++                )
++                .map_err(|err| eco_format!("failed to print diagnostics ({err})"))?;
++                Ok(())
++            }
++        };
++    }
++
+     let Warned { output, mut warnings } = match command.target {
+         Target::Paged => typst::compile::<PagedDocument>(&world)
+             .map(|result| result.map(|output| Box::new(output) as Box<dyn Output>)),
+@@ -158,3 +185,65 @@ fn deprecation_warning(command: &QueryCommand) -> SourceDiagnostic {
+         hint: "use `{eval_command}` instead";
+     )
+ }
++
++
++/// Walk the document layout and emit one record per text run:
++/// `path|line|col|page|x|y|w|h` (positions in pt, top-left origin).
++fn source_map(world: &dyn World, doc: &PagedDocument) -> StrResult<String> {
++    let mut out = Vec::new();
++    for (i, page) in doc.pages().iter().enumerate() {
++        walk_frame(world, &page.frame, i + 1, 0.0, 0.0, &mut out);
++    }
++    Ok(out.join("\n"))
++}
++
++fn walk_frame(
++    world: &dyn World,
++    frame: &Frame,
++    page_no: usize,
++    ox: f64,
++    oy: f64,
++    out: &mut Vec<String>,
++) {
++    for (point, item) in frame.items() {
++        let x = ox + point.x.to_pt();
++        let y = oy + point.y.to_pt();
++        match item {
++            FrameItem::Group(group) => walk_frame(world, &group.frame, page_no, x, y, out),
++            FrameItem::Text(text) => {
++                let size = text.size.to_pt();
++                let w: f64 = text
++                    .glyphs
++                    .iter()
++                    .map(|g| g.x_advance.at(text.size).to_pt())
++                    .sum();
++                if w <= 0.0 {
++                    continue;
++                }
++                let Some(span) = text.glyphs.first().map(|g| g.span.0) else {
++                    continue;
++                };
++                let Some(id) = span.id() else { continue };
++                let Ok(src) = world.source(id) else { continue };
++                let Some(range) = world.range(span) else { continue };
++                let text = src.text();
++                let offset = range.start.min(text.len());
++                let before = &text[..offset];
++                let line = before.bytes().filter(|&b| b == b'\n').count() + 1;
++                let col = offset - before.rfind('\n').map(|i| i + 1).unwrap_or(0);
++                out.push(format!(
++                    "{}|{}|{}|{}|{:.1}|{:.1}|{:.1}|{:.1}",
++                    src.id().vpath().as_rooted_path().display(),
++                    line,
++                    col,
++                    page_no,
++                    x,
++                    y,
++                    w,
++                    size
++                ));
++            }
++            _ => {}
++        }
++    }
++}
