@@ -3,6 +3,8 @@
 Compile a Typst document inside Overleaf's sandbox — and get working
 click-to-source navigation in the Overleaf PDF viewer.
 
+Full writeup: <https://jab-s-vibes.github.io/typst-on-overleaf.html>
+
 **This is an unsupported hack.** It relies on details of Overleaf's compile
 sandbox (seccomp profile, container image, viewer) that can change at any
 time. Tested on overleaf.com, 2026-08.
